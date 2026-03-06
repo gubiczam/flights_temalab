@@ -1,0 +1,11 @@
+name: utazastervezo
+channels:
+  - defaults
+dependencies:
+  - matplotlib
+  - pandas
+  - python=3.10
+  - seaborn
+  - jupyter
+  - numpy
+prefix: /opt/anaconda3/envs/utazastervezo
