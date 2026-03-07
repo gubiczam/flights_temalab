@@ -16,6 +16,9 @@ MONTH_LABELS = {
     12: "Dec",
 }
 
+BAYES_PRIOR_STRENGTH = 40.0
+CI_Z_SCORE = 1.96
+
 
 def _fmt_number(value: float) -> str:
     return f"{value:.1f}".rstrip("0").rstrip(".")
@@ -30,6 +33,52 @@ def _fmt_pp(value: float) -> str:
     return f"{sign}{_fmt_number(value)} p.p."
 
 
+def _bayesian_delay_risk(
+    delayed_counts: np.ndarray,
+    total_counts: np.ndarray,
+    prior_mean: float,
+    prior_strength: float = BAYES_PRIOR_STRENGTH,
+) -> np.ndarray:
+    alpha = prior_mean * prior_strength
+    denominator = total_counts + prior_strength
+    return np.divide(
+        delayed_counts + alpha,
+        denominator,
+        out=np.zeros_like(delayed_counts, dtype=float),
+        where=denominator > 0,
+    ) * 100
+
+
+def _wilson_interval(
+    delayed_counts: np.ndarray,
+    total_counts: np.ndarray,
+    z_score: float = CI_Z_SCORE,
+) -> tuple[np.ndarray, np.ndarray]:
+    lower = np.zeros_like(delayed_counts, dtype=float)
+    upper = np.zeros_like(delayed_counts, dtype=float)
+
+    valid = total_counts > 0
+    if not np.any(valid):
+        return lower, upper
+
+    n = total_counts[valid].astype(float)
+    k = delayed_counts[valid].astype(float)
+    p = k / n
+    z2 = z_score ** 2
+
+    denominator = 1 + z2 / n
+    center = (p + z2 / (2 * n)) / denominator
+    margin = (
+        z_score
+        * np.sqrt((p * (1 - p) + z2 / (4 * n)) / n)
+        / denominator
+    )
+
+    lower[valid] = np.clip((center - margin) * 100, 0, 100)
+    upper[valid] = np.clip((center + margin) * 100, 0, 100)
+    return lower, upper
+
+
 def calculate_reliability(df: pd.DataFrame) -> pd.DataFrame:
     working_df = df.copy()
     working_df["is_delayed"] = (working_df["arr_delay"] > 15).astype(int)
@@ -40,7 +89,18 @@ def calculate_reliability(df: pd.DataFrame) -> pd.DataFrame:
         atlagos_keses=("arr_delay", "mean"),
     ).reset_index()
 
-    stats["kesesi_esely"] = np.round(stats["kesett_jaratok"] / stats["osszes_jarat"] * 100, 1)
+    delayed_counts = stats["kesett_jaratok"].to_numpy(dtype=float)
+    total_counts = stats["osszes_jarat"].to_numpy(dtype=float)
+
+    global_delay_rate = float(working_df["is_delayed"].mean())
+    stats["kesesi_esely_nyers"] = np.round(delayed_counts / total_counts * 100, 1)
+    stats["kesesi_esely"] = np.round(
+        _bayesian_delay_risk(delayed_counts, total_counts, global_delay_rate),
+        1,
+    )
+    ci_lower, ci_upper = _wilson_interval(delayed_counts, total_counts)
+    stats["kesesi_ci_lower"] = np.round(ci_lower, 1)
+    stats["kesesi_ci_upper"] = np.round(ci_upper, 1)
     stats["atlagos_keses"] = np.round(stats["atlagos_keses"], 1)
     stats["score"] = np.round(100 - stats["kesesi_esely"], 1)
 
@@ -152,6 +212,7 @@ def build_dashboard_payload(
     baseline: dict,
     seasonality: list[dict],
     boxplot: list[dict],
+    analytics_population: pd.DataFrame | None = None,
 ) -> dict:
     recommendations_view = recommendations.copy().reset_index(drop=True)
 
@@ -187,6 +248,13 @@ def build_dashboard_payload(
     recommendations_view["kesesi_esely_label"] = [
         _fmt_percent(float(value)) for value in recommendations_view["kesesi_esely"].to_numpy(dtype=float)
     ]
+    recommendations_view["kesesi_ci_label"] = [
+        f"CI95: {_fmt_percent(float(lower))} - {_fmt_percent(float(upper))}"
+        for lower, upper in zip(
+            recommendations_view["kesesi_ci_lower"].to_numpy(dtype=float),
+            recommendations_view["kesesi_ci_upper"].to_numpy(dtype=float),
+        )
+    ]
 
     best_vs_route_pp = float(route_delta_pp[0]) if route_delta_pp.size > 0 else 0.0
 
@@ -218,6 +286,55 @@ def build_dashboard_payload(
         ],
         "values": [float(value) for value in risk_values],
         "colors": [str(color) for color in risk_colors],
+        "ci_lower": [
+            float(value) for value in recommendations_view["kesesi_ci_lower"].to_numpy(dtype=float)
+        ],
+        "ci_upper": [
+            float(value) for value in recommendations_view["kesesi_ci_upper"].to_numpy(dtype=float)
+        ],
+    }
+
+    tradeoff_source = analytics_population.copy() if analytics_population is not None else recommendations_view.copy()
+    tradeoff_source = tradeoff_source.reset_index(drop=True)
+    tradeoff_source["is_top5"] = False
+    if not tradeoff_source.empty:
+        top_keys = set(
+            zip(
+                recommendations_view["carrier"].astype(str),
+                recommendations_view["napszak"].astype(str),
+            )
+        )
+        tradeoff_source["is_top5"] = [
+            (carrier, napszak) in top_keys
+            for carrier, napszak in zip(
+                tradeoff_source["carrier"].astype(str),
+                tradeoff_source["napszak"].astype(str),
+            )
+        ]
+
+    tradeoff_sizes = tradeoff_source["osszes_jarat"].to_numpy(dtype=float)
+    if tradeoff_sizes.size > 0 and float(np.max(tradeoff_sizes)) > float(np.min(tradeoff_sizes)):
+        radii = np.interp(tradeoff_sizes, (np.min(tradeoff_sizes), np.max(tradeoff_sizes)), (5.0, 15.0))
+    else:
+        radii = np.full(shape=tradeoff_sizes.shape, fill_value=9.0)
+
+    tradeoff_points = [
+        {
+            "x": float(row["kesesi_esely"]),
+            "y": float(row["atlagos_keses"]),
+            "r": float(np.round(radius, 1)),
+            "carrier": str(row["carrier"]),
+            "name": str(row["name"]),
+            "napszak": str(row["napszak"]),
+            "sample_size": int(row["osszes_jarat"]),
+            "score": float(row["score"]),
+            "is_top5": bool(row["is_top5"]),
+        }
+        for row, radius in zip(tradeoff_source.to_dict(orient="records"), radii)
+    ]
+
+    tradeoff_chart = {
+        "points": tradeoff_points,
     }
 
     seasonality_df = pd.DataFrame(seasonality)
@@ -253,6 +370,9 @@ def build_dashboard_payload(
         "score",
         "osszes_jarat",
         "kesesi_esely",
+        "kesesi_esely_nyers",
+        "kesesi_ci_lower",
+        "kesesi_ci_upper",
         "atlagos_keses",
         "is_top",
         "delay_class",
@@ -261,6 +381,7 @@ def build_dashboard_payload(
         "route_delta_class",
         "route_delta_label",
         "kesesi_esely_label",
+        "kesesi_ci_label",
     ]
 
     return {
@@ -270,5 +391,6 @@ def build_dashboard_payload(
             "risk": risk_chart,
             "seasonality": seasonality_chart,
             "boxplot": boxplot_chart,
+            "tradeoff": tradeoff_chart,
         },
     }
