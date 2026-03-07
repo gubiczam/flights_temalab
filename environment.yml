@@ -8,4 +8,7 @@ dependencies:
   - seaborn
   - jupyter
   - numpy
+  - pytest
+  - uvicorn
+  - fastapi
 prefix: /opt/anaconda3/envs/utazastervezo

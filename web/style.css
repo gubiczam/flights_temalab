@@ -1,0 +1,463 @@
+:root {
+    --primary: #1a73e8;
+    --primary-soft: #dfe9fb;
+    --success: #34a853;
+    --warning: #fbbc04;
+    --danger: #ea4335;
+    --bg: #f8f9fa;
+    --text: #202124;
+    --muted: #5f6368;
+    --surface: #ffffff;
+    --border: #e6e8eb;
+    --shadow: 0 8px 24px rgba(32, 33, 36, 0.08);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Inter", system-ui, sans-serif;
+    background:
+        radial-gradient(circle at 15% 15%, rgba(26, 115, 232, 0.08), transparent 38%),
+        radial-gradient(circle at 85% 0%, rgba(52, 168, 83, 0.08), transparent 34%),
+        var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 12px 16px;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.dashboard {
+    max-width: 1180px;
+    margin: 0 auto;
+    height: calc(100vh - 24px);
+    display: grid;
+    grid-template-rows: auto auto auto 1fr;
+    gap: 10px;
+}
+
+header {
+    text-align: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: clamp(1.4rem, 2.1vw, 1.85rem);
+    letter-spacing: 0.01em;
+}
+
+header p {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 0.93rem;
+}
+
+header a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.spec-link {
+    font-weight: 600;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.search-section {
+    background: var(--surface);
+    padding: 10px 12px;
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: auto auto auto;
+    gap: 10px;
+    justify-content: center;
+    align-items: end;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.input-group label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+input {
+    padding: 9px 11px;
+    border: 1px solid #d6d9de;
+    border-radius: 9px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    width: 114px;
+    text-transform: uppercase;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.16);
+}
+
+button {
+    background: linear-gradient(180deg, #2b7de9, #1a73e8);
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.9rem;
+    transition: transform 0.18s ease, filter 0.18s ease;
+    white-space: nowrap;
+}
+
+button:hover {
+    filter: brightness(0.96);
+    transform: translateY(-1px);
+}
+
+.main-content {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 0.92fr 1.08fr;
+    gap: 10px;
+}
+
+.card {
+    background: var(--surface);
+    padding: 10px 12px;
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+}
+
+.info-card {
+    padding: 11px 13px;
+}
+
+.info-card h3 {
+    margin: 0 0 6px;
+    font-size: 0.95rem;
+}
+
+.info-card p {
+    margin: 4px 0;
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.35;
+}
+
+.info-formula {
+    background: #f3f7ff;
+    border: 1px solid #dce7ff;
+    border-radius: 8px;
+    padding: 6px 8px;
+    color: #29457d;
+    font-weight: 600;
+}
+
+.info-metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 6px 0 4px;
+}
+
+.data-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 999px;
+    border: 1px solid #dce7ff;
+    background: #f5f8ff;
+    color: #29457d;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.info-list {
+    margin: 6px 0 0;
+    padding-left: 18px;
+    color: var(--muted);
+    font-size: 0.81rem;
+    line-height: 1.35;
+}
+
+.info-list li {
+    margin: 2px 0;
+}
+
+.results-container,
+.analytics-container {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.results-container h3,
+.analytics-head h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.analytics-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.chart-tabs {
+    display: flex;
+    gap: 6px;
+}
+
+.chart-tabs .tab-btn {
+    background: var(--primary-soft);
+    color: var(--primary);
+    border: 1px solid #c5d7fa;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.chart-tabs .tab-btn.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+
+.chart-tabs .tab-btn:hover {
+    transform: none;
+    filter: none;
+}
+
+.chart-canvas-wrap {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+}
+
+#analyticsChart,
+#delayChart {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.baseline-summary {
+    margin-top: 8px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.baseline-item {
+    border: 1px solid #e2e7ef;
+    border-radius: 10px;
+    padding: 7px 8px;
+    background: #f9fbff;
+}
+
+.baseline-label {
+    font-size: 0.68rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.baseline-value {
+    margin-top: 2px;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.baseline-meta {
+    margin-top: 2px;
+    font-size: 0.72rem;
+    color: #657188;
+}
+
+.baseline-value.positive {
+    color: var(--success);
+}
+
+.baseline-value.negative {
+    color: var(--danger);
+}
+
+#resultsList {
+    margin-top: 8px;
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding-right: 4px;
+    scrollbar-width: thin;
+}
+
+.flight-card {
+    background: #fbfcfe;
+    border-radius: 11px;
+    padding: 9px 10px;
+    margin-bottom: 7px;
+    border: 1px solid #e6eaf0;
+    border-left: 4px solid #d9dde5;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.flight-card:last-child {
+    margin-bottom: 0;
+}
+
+.flight-card.top {
+    border-left-color: var(--success);
+    background: #f3fbf5;
+}
+
+.flight-main {
+    min-width: 0;
+}
+
+.score-badge {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.flight-name {
+    margin-top: 4px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.flight-route {
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 0.82rem;
+}
+
+.flight-stats {
+    display: block;
+    margin-top: 2px;
+    color: #6b7280;
+    font-size: 0.74rem;
+}
+
+.flight-meta {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.probability {
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--danger);
+}
+
+.top .probability {
+    color: var(--success);
+}
+
+.risk-label {
+    margin-top: 2px;
+    font-size: 0.72rem;
+    color: var(--muted);
+}
+
+.delay-info {
+    margin-top: 4px;
+    font-size: 0.8rem;
+}
+
+.delay-info.early {
+    color: var(--success);
+    font-weight: 700;
+}
+
+.delay-info.late {
+    color: var(--danger);
+    font-weight: 700;
+}
+
+.baseline-delta {
+    margin-top: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.baseline-delta.positive {
+    color: var(--success);
+}
+
+.baseline-delta.negative {
+    color: var(--danger);
+}
+
+@media (max-width: 1080px) {
+    body {
+        height: auto;
+        overflow: auto;
+        padding: 10px;
+    }
+
+    .dashboard {
+        height: auto;
+        grid-template-rows: auto;
+    }
+
+    .info-grid,
+    .main-content,
+    .search-section {
+        grid-template-columns: 1fr;
+    }
+
+    .search-section {
+        justify-content: stretch;
+        align-items: stretch;
+    }
+
+    input {
+        width: 100%;
+    }
+
+    .analytics-head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .baseline-summary {
+        grid-template-columns: 1fr;
+    }
+
+    #resultsList {
+        max-height: 46vh;
+    }
+
+    .chart-canvas-wrap {
+        min-height: 290px;
+    }
+}

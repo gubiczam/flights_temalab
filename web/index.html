@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Okos utazastervezo dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard">
+        <header>
+            <h1>Okos Utazastervezo</h1>
+            <p>
+                Adatalapú repülési rizikóelemzés
+                <a href="https://www.kaggle.com/datasets/mahoora00135/flights" target="_blank" rel="noreferrer">(Kaggle: NYC 2013 Data)</a>
+                adatbázis alapján.
+            </p>
+            <p>
+                <a href="../KAIB9Y_elso_temalaborspec_flights.pdf" target="_blank" rel="noreferrer" class="spec-link">
+                    Specifikáció (ötlet)
+                </a>
+            </p>
+        </header>
+
+        <section class="info-grid">
+            <div class="card info-card">
+                <h3>Mi a Megbizhatosagi Index?</h3>
+                <p>
+                    A Megbizhatosagi Index egy <strong>0-100 kozotti pontszam</strong>, ami azt mutatja,
+                    mennyire kockazatos egy adott jaratopcio.
+                </p>
+                <p class="info-formula">
+                    Index = 100 - kesesi esely (%), ahol a keses a 15+ perces erkezesi kesest jelenti.
+                </p>
+                <p>
+                    Pelda: ha a kesesi esely 18%, az index 82 pont. <strong>Minel magasabb az index,
+                    annal megbizhatobb az opcio.</strong>
+                </p>
+            </div>
+            <div class="card info-card">
+                <h3>Elerheto adatok</h3>
+                <p>
+                    Az elemzes a 2013-as NYC Flights adathalmazra epul, nagy mintan, valos menetrendi
+                    adatokkal.
+                </p>
+                <div class="info-metrics">
+                    <span class="data-pill">~327 ezer járat</span>
+                    <span class="data-pill">105+ célrepülőtér</span>
+                    <span class="data-pill">16 légitársaság</span>
+                </div>
+                <ul class="info-list">
+                    <li><strong>Indulasi repuloterek:</strong> EWR, JFK, LGA (csak New York)</li>
+                    <li><strong>Idotav:</strong> teljes 2013-as ev</li>
+                    <li><strong>Elemzett jellemzok:</strong> erkezesi keses, napszak, carrier, utvonal</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="search-section">
+            <div class="input-group">
+                <label for="origin">Indulas (NYC)</label>
+                <input type="text" id="origin" list="originList" value="LGA" placeholder="Honnan?">
+                <datalist id="originList"></datalist>
+            </div>
+            <div class="input-group">
+                <label for="dest">Celallomas</label>
+                <input type="text" id="dest" list="destList" value="FLL" placeholder="Hova?">
+                <datalist id="destList"></datalist>
+            </div>
+            <button id="searchBtn" type="button" onclick="updateDashboard()">Elemzes inditasa</button>
+        </section>
+
+        <div class="main-content">
+            <section class="results-container card">
+                <h3>Javasolt opciok</h3>
+                <div id="baselineSummary" class="baseline-summary"></div>
+                <div id="resultsList"></div>
+            </section>
+
+            <section class="analytics-container card">
+                <div class="analytics-head">
+                    <h3 id="analyticsTitle">Kesesi esely osszehasonlitasa (%)</h3>
+                    <div class="chart-tabs">
+                        <button type="button" class="tab-btn active" data-view="risk">Riziko</button>
+                        <button type="button" class="tab-btn" data-view="seasonality">Szezonalitas</button>
+                        <button type="button" class="tab-btn" data-view="boxplot">Boxplot</button>
+                    </div>
+                </div>
+                <div class="chart-canvas-wrap">
+                    <canvas id="delayChart"></canvas>
+                </div>
+            </section>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
